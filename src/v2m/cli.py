@@ -5,15 +5,25 @@ from v2m.core.preprocessor import Preprocessor
 from v2m.core.reconstructor import Reconstructor
 from v2m.core.exporter import Exporter
 from v2m.utils.logger import setup_logger
+import uvicorn
 
 logger = setup_logger(__name__)
 
 def main():
     parser = argparse.ArgumentParser(description="V2M: Video to Mesh Industrial Pipeline")
-    parser.add_argument("--video", type=str, required=True, help="Path to input video file")
-    parser.add_argument("--output_dir", type=str, required=True, help="Directory to save the outputs")
+    parser.add_argument("--video", type=str, help="Path to input video file")
+    parser.add_argument("--output_dir", type=str, help="Directory to save the outputs")
+    parser.add_argument("--serve", action="store_true", help="Start the FastAPI web server")
     
     args = parser.parse_args()
+    
+    if args.serve:
+        logger.info("Starting V2M API Server...")
+        uvicorn.run("v2m.api:app", host="0.0.0.0", port=8000, reload=False)
+        return
+
+    if not args.video or not args.output_dir:
+        parser.error("--video and --output_dir are required unless --serve is used.")
     
     video_path = args.video
     base_output_dir = Path(args.output_dir)
